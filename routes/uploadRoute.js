@@ -3,11 +3,11 @@ const express = require('express')
 
 const router = express.Router();
 
-const userController = require('../controllers/uploadController')
+const uploadController = require('../controllers/uploadController')
 
-router.get('/view_users',userController.getUser)
-router.post('/create_users',userController.createUser)
-router.put('/update_users/:id',userController.updateUser)
-router.delete('/delete_users/:id',userController.deleteUser)
+router.get('/view_uploads',uploadController.getUpload)
+router.post('/create_uploads',uploadController.createUpload)
+router.put('/update_uploads/:id',uploadController.updateUpload)
+router.delete('/delete_uploads/:id',uploadController.deleteUpload)
 
 module.exports = router;
