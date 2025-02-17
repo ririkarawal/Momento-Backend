@@ -8,6 +8,8 @@ const uploadRoute = require('./routes/uploadRoute');
 const categoryRoute = require('./routes/categoryRoute');
 const categoryUploadRoute = require('./routes/categoryUploadRoute');
 const commentRoute = require('./routes/commentRoute');
+const pinRoute = require('./routes/pinRoute');
+
 
 //Creating a Server
 const app = express();
@@ -31,6 +33,7 @@ app.use('/uploads', uploadRoute);
 app.use('/categories', categoryRoute);
 app.use('/categoryuploads', categoryUploadRoute);
 app.use('/comments', commentRoute);
+app.use('/pins', pinRoute);
 
 //Running on PORT
 app.listen(PORT, ()=>{
