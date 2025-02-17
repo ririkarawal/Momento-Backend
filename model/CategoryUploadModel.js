@@ -8,6 +8,7 @@ const Upload = require("./UploadModel")
 const CategoryUpload = sequelize.define('CategoryUploads',{
     CategoryUploadid:{
         type: DataTypes.INTEGER,
+        primaryKey: true,
         autoIncrement: true,
      } ,
 
@@ -31,7 +32,7 @@ const CategoryUpload = sequelize.define('CategoryUploads',{
     
 });
 
-Category.belongsTo(Category, { foreignKey: "Categoryid" });
-Upload.belongsTo(Upload, { foreignKey: "Uploadid" });
+CategoryUpload.belongsTo(Category, { foreignKey: "Categoryid" });
+CategoryUpload.belongsTo(Upload, { foreignKey: "Uploadid" });
 
 module.exports = CategoryUpload;

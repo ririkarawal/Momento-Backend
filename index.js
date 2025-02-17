@@ -5,6 +5,8 @@ const bodyParser = require('body-parser');
 const sequelize = require('./database/db');
 const userRoute = require('./routes/userRoute');
 const uploadRoute = require('./routes/uploadRoute');
+const categoryRoute = require('./routes/categoryRoute');
+const categoryUploadRoute = require('./routes/categoryUploadRoute');
 
 //Creating a Server
 const app = express();
