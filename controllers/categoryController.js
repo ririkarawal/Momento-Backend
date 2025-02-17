@@ -16,10 +16,10 @@ const createCategory = async(req, res)=>{
     
     try{
         
-const {id,categoryName} = req.body;
+const {categoryName} = req.body;
 
 //Hash the password
-const newtest = await User.create({id,categoryName})
+const newtest = await User.create({categoryName})
 
 res.status(200).json(newtest);
     }
