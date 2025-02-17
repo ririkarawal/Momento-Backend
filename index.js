@@ -7,6 +7,7 @@ const userRoute = require('./routes/userRoute');
 const uploadRoute = require('./routes/uploadRoute');
 const categoryRoute = require('./routes/categoryRoute');
 const categoryUploadRoute = require('./routes/categoryUploadRoute');
+const commentRoute = require('./routes/commentRoute');
 
 //Creating a Server
 const app = express();
@@ -29,6 +30,7 @@ app.use('/users', userRoute);
 app.use('/uploads', uploadRoute);
 app.use('/categories', categoryRoute);
 app.use('/categoryuploads', categoryUploadRoute);
+app.use('/comments', commentRoute);
 
 //Running on PORT
 app.listen(PORT, ()=>{
