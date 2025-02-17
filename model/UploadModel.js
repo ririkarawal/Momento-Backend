@@ -30,6 +30,6 @@ const Upload = sequelize.define('Uploads',{
     
 });
 
-Review.belongsTo(User, { foreignKey: "userId" });
+Upload.belongsTo(User, { foreignKey: "userId" });
 
 module.exports = Upload;
