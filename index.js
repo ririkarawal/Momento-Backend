@@ -26,7 +26,7 @@ app.get('/login',(req, res)=>{
 app.use('/users', userRoute);
 app.use('/uploads', uploadRoute);
 app.use('/categories', categoryRoute);
-
+app.use('/categoryuploads', categoryUploadRoute);
 
 //Running on PORT
 app.listen(PORT, ()=>{
