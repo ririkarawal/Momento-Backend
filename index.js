@@ -15,7 +15,7 @@ const reminderRoute = require('./routes/reminderRoute');
 const app = express();
 
 //Creating a port
-const PORT = process.env.PORT || 5000
+const PORT = process.env.PORT || 8092
 
 //Creating a middleware
 app.use(cors());
