@@ -3,55 +3,45 @@ const User = require('../model/UserModel');
 const fs = require('fs');
 const path = require('path');
 
-// Create a new upload
+// Create  upload
 const createUpload = async (req, res) => {
-    console.log("Full request body:", req.body);
-    console.log("File received:", req.file ? req.file : "No file");
+    console.log("Full upload request:", {
+        body: req.body,
+        file: req.file
+    });
 
     if (!req.file) {
         return res.status(400).json({ error: "No file uploaded" });
     }
 
     try {
-        // Validate user
-        const userId = req.body.userId;
-        const user = await User.findByPk(userId);
-        if (!user) {
-            return res.status(404).json({ error: "User not found" });
-        }
+        // Detailed file information logging
+        console.log('File details:', {
+            originalName: req.file.originalname,
+            filename: req.file.filename,
+            path: req.file.path,
+            mimetype: req.file.mimetype,
+            size: req.file.size
+        });
 
-        // Create upload record
         const newUpload = await Upload.create({
             description: req.body.description || '',
-            isLiked: req.body.isLiked === "true",
-            userId: userId,
-            imagePath: req.file.filename // Store just the filename
+            isLiked: false,
+            userId: req.body.userId,
+            imagePath: req.file.filename
         });
 
-        // Fetch the created upload with user details
-        const uploadWithUser = await Upload.findByPk(newUpload.id, {
-            include: [{
-                model: User,
-                attributes: ['id', 'username']
-            }]
-        });
+        // Log created upload details
+        console.log('Created Upload:', newUpload.toJSON());
 
-        // Log the created upload
-        console.log("Created upload:", uploadWithUser.toJSON());
-
-        res.status(200).json(uploadWithUser);
+        res.status(200).json(newUpload);
     } catch (error) {
-        console.error("Error in createUpload:", error);
-        
-        // If file was uploaded but record creation failed, remove the file
-        if (req.file) {
-            const filePath = path.join(__dirname, '../uploads', req.file.filename);
-            try {
-                fs.unlinkSync(filePath);
-            } catch (unlinkError) {
-                console.error("Failed to remove uploaded file:", unlinkError);
-            }
-        }
+        console.error("Comprehensive Upload Error:", {
+            message: error.message,
+            stack: error.stack,
+            body: req.body,
+            file: req.file
+        });
 
         res.status(500).json({ 
             error: "Failed to upload",
@@ -59,6 +49,7 @@ const createUpload = async (req, res) => {
         });
     }
 };
+
 
 // Get all uploads
 const getUpload = async (req, res) => {
@@ -86,20 +77,12 @@ const getUpload = async (req, res) => {
         });
     }
 };
-
 // Get uploads for a specific user
 const getUserUploads = async (req, res) => {
     try {
         const userId = req.params.userId;
-        console.log("Finding uploads for userId:", userId);
+        console.log("Finding uploads for specific userId:", userId);
 
-        // Verify user exists
-        const user = await User.findByPk(userId);
-        if (!user) {
-            return res.status(404).json({ message: "User not found" });
-        }
-
-        // Fetch user's uploads
         const uploads = await Upload.findAll({
             where: { userId: userId },
             include: [{
@@ -110,10 +93,16 @@ const getUserUploads = async (req, res) => {
             order: [['createdAt', 'DESC']]
         });
 
-        console.log(`Found ${uploads.length} uploads for user ${userId}`);
+        console.log("Uploads Found:", uploads.map(upload => ({
+            id: upload.id,
+            imagePath: upload.imagePath,
+            userId: upload.userId,
+            description: upload.description
+        })));
+
         res.status(200).json(uploads);
     } catch (error) {
-        console.error("Error in getUserUploads:", {
+        console.error("Detailed Error in getUserUploads:", {
             message: error.message,
             stack: error.stack
         });
