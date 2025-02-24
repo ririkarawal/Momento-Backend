@@ -1,25 +1,66 @@
 const Upload = require('../model/UploadModel');
 const User = require('../model/UserModel');
+const fs = require('fs');
+const path = require('path');
 
+// Create a new upload
 const createUpload = async (req, res) => {
+    console.log("Full request body:", req.body);
+    console.log("File received:", req.file ? req.file : "No file");
+
     if (!req.file) {
         return res.status(400).json({ error: "No file uploaded" });
     }
 
     try {
+        // Validate user
+        const userId = req.body.userId;
+        const user = await User.findByPk(userId);
+        if (!user) {
+            return res.status(404).json({ error: "User not found" });
+        }
+
+        // Create upload record
         const newUpload = await Upload.create({
-            description: req.body.description,
+            description: req.body.description || '',
             isLiked: req.body.isLiked === "true",
-            userId: req.body.userId,
-            imagePath: req.file.filename // Store just the filename, without path
+            userId: userId,
+            imagePath: req.file.filename // Store just the filename
         });
 
-        // Rest of your existing code remains the same
+        // Fetch the created upload with user details
+        const uploadWithUser = await Upload.findByPk(newUpload.id, {
+            include: [{
+                model: User,
+                attributes: ['id', 'username']
+            }]
+        });
+
+        // Log the created upload
+        console.log("Created upload:", uploadWithUser.toJSON());
+
+        res.status(200).json(uploadWithUser);
     } catch (error) {
         console.error("Error in createUpload:", error);
-        res.status(500).json({ error: "Failed to upload" });
+        
+        // If file was uploaded but record creation failed, remove the file
+        if (req.file) {
+            const filePath = path.join(__dirname, '../uploads', req.file.filename);
+            try {
+                fs.unlinkSync(filePath);
+            } catch (unlinkError) {
+                console.error("Failed to remove uploaded file:", unlinkError);
+            }
+        }
+
+        res.status(500).json({ 
+            error: "Failed to upload",
+            details: error.message 
+        });
     }
 };
+
+// Get all uploads
 const getUpload = async (req, res) => {
     try {
         console.log("Starting to fetch all uploads...");
@@ -31,13 +72,13 @@ const getUpload = async (req, res) => {
             }],
             order: [['createdAt', 'DESC']]
         });
-        console.log("Uploads fetched successfully:", JSON.stringify(uploads, null, 2));
+        
+        console.log("Uploads fetched successfully:", uploads.length);
         res.status(200).json(uploads);
     } catch (error) {
         console.error("Error in getUpload:", {
             message: error.message,
-            sql: error.sql, // This will show the SQL query that failed
-            fullError: error // Full error object
+            stack: error.stack
         });
         res.status(500).json({
             error: "Failed to load uploads",
@@ -46,15 +87,19 @@ const getUpload = async (req, res) => {
     }
 };
 
+// Get uploads for a specific user
 const getUserUploads = async (req, res) => {
     try {
         const userId = req.params.userId;
         console.log("Finding uploads for userId:", userId);
 
-        // First check if user exists
+        // Verify user exists
         const user = await User.findByPk(userId);
-        console.log("Found user:", user ? "Yes" : "No");
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
 
+        // Fetch user's uploads
         const uploads = await Upload.findAll({
             where: { userId: userId },
             include: [{
@@ -64,13 +109,13 @@ const getUserUploads = async (req, res) => {
             }],
             order: [['createdAt', 'DESC']]
         });
-        console.log("Found uploads:", JSON.stringify(uploads, null, 2));
+
+        console.log(`Found ${uploads.length} uploads for user ${userId}`);
         res.status(200).json(uploads);
     } catch (error) {
         console.error("Error in getUserUploads:", {
             message: error.message,
-            sql: error.sql,
-            fullError: error
+            stack: error.stack
         });
         res.status(500).json({
             error: "Failed to load user uploads",
@@ -79,30 +124,58 @@ const getUserUploads = async (req, res) => {
     }
 };
 
-// Keep your existing update and delete functions
+// Update an upload
 const updateUpload = async (req, res) => {
     try {
         const upload = await Upload.findByPk(req.params.id);
         if (!upload) {
             return res.status(404).json({ message: 'Upload not found' });
         }
-        await upload.update(req.body);
-        res.json(upload);
-    } catch (err) {
-        res.status(400).json({ error: err.message });
+
+        // Update with validation
+        const updateData = {};
+        if (req.body.description) updateData.description = req.body.description;
+        if (req.body.isLiked !== undefined) updateData.isLiked = req.body.isLiked;
+
+        const updatedUpload = await upload.update(updateData);
+        
+        res.json(updatedUpload);
+    } catch (error) {
+        console.error("Error in updateUpload:", error);
+        res.status(400).json({ 
+            error: "Failed to update upload",
+            details: error.message 
+        });
     }
 };
 
+// Delete an upload
 const deleteUpload = async (req, res) => {
     try {
         const upload = await Upload.findByPk(req.params.id);
         if (!upload) {
             return res.status(404).json({ message: 'Upload not found' });
         }
+
+        // Optionally, delete the physical file
+        const filePath = path.join(__dirname, '../uploads', upload.imagePath);
+        try {
+            if (fs.existsSync(filePath)) {
+                fs.unlinkSync(filePath);
+            }
+        } catch (fileDeleteError) {
+            console.error("Failed to delete file:", fileDeleteError);
+        }
+
+        // Delete the upload record
         await upload.destroy();
-        res.json({ message: 'Upload deleted' });
-    } catch (err) {
-        res.status(500).json({ error: err.message });
+        res.json({ message: 'Upload deleted successfully' });
+    } catch (error) {
+        console.error("Error in deleteUpload:", error);
+        res.status(500).json({ 
+            error: "Failed to delete upload",
+            details: error.message 
+        });
     }
 };
 
