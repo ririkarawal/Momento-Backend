@@ -1,7 +1,39 @@
 const Upload = require('../model/UploadModel');
 const User = require('../model/UserModel');
+
 const fs = require('fs');
 const path = require('path');
+
+const getUploadsByCategory = async (req, res) => {
+    try {
+        const categoryId = req.params.categoryId;
+        console.log("Finding uploads for category:", categoryId);
+
+        const uploads = await Upload.findAll({
+            where: { categoryId: categoryId },
+            include: [{
+                model: User,
+                as: 'User',
+                attributes: ['id', 'username']
+            }],
+            order: [['createdAt', 'DESC']]
+        });
+
+        console.log(`Found ${uploads.length} uploads for category ${categoryId}`);
+
+        res.status(200).json(uploads);
+    } catch (error) {
+        console.error("Error in getUploadsByCategory:", {
+            message: error.message,
+            stack: error.stack
+        });
+        res.status(500).json({
+            error: "Failed to load category uploads",
+            details: error.message
+        });
+    }
+};
+
 
 // Create  upload
 const createUpload = async (req, res) => {
@@ -28,6 +60,7 @@ const createUpload = async (req, res) => {
             description: req.body.description || '',
             isLiked: false,
             userId: req.body.userId,
+            categoryId: req.body.categoryId || null, // Add this line
             imagePath: req.file.filename
         });
 
@@ -51,32 +84,39 @@ const createUpload = async (req, res) => {
 };
 
 
+
 // Get all uploads
 const getUpload = async (req, res) => {
     try {
-        console.log("Starting to fetch all uploads...");
+        // Make sure you've imported Category model at the top of the file
+        const Category = require('../model/CategoryModel');
+        
         const uploads = await Upload.findAll({
-            include: [{
-                model: User,
-                as: 'User',
-                attributes: ['id', 'username']
-            }],
+            include: [
+                {
+                    model: User,
+                    as: 'User',
+                    attributes: ['id', 'username']
+                },
+                {
+                    model: Category,
+                    as: 'Category',
+                    attributes: ['id', 'categoryName']
+                }
+            ],
             order: [['createdAt', 'DESC']]
         });
         
-        console.log("Uploads fetched successfully:", uploads.length);
         res.status(200).json(uploads);
     } catch (error) {
-        console.error("Error in getUpload:", {
-            message: error.message,
-            stack: error.stack
-        });
+        console.error("Error in getUpload:", error);
         res.status(500).json({
             error: "Failed to load uploads",
             details: error.message
         });
     }
 };
+
 // Get uploads for a specific user
 const getUserUploads = async (req, res) => {
     try {
@@ -169,6 +209,7 @@ const deleteUpload = async (req, res) => {
 };
 
 module.exports = {
+    getUploadsByCategory,
     createUpload,
     getUpload,
     getUserUploads,

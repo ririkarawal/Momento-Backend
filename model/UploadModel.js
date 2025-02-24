@@ -1,5 +1,6 @@
 const { Sequelize, DataTypes } = require("sequelize");
 const User = require("./UserModel");
+const Category = require('./CategoryModel');
 const sequelize = require("../database/db");
 
 const Upload = sequelize.define("Uploads", {
@@ -25,6 +26,14 @@ const Upload = sequelize.define("Uploads", {
         },
         onDelete: "CASCADE",
     },
+    categoryId: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+        references: {
+            model: Category,
+            key: "id",
+        }
+    },
     imagePath: {
         type: DataTypes.STRING,
         allowNull: true,
@@ -34,14 +43,17 @@ const Upload = sequelize.define("Uploads", {
     timestamps: true,
 });
 
-// Ensure this is after both models are defined
 Upload.belongsTo(User, { 
     foreignKey: "userId",
     as: 'User',
     onDelete: 'CASCADE'
 });
 
-// Add this line to force proper table creation order
-Upload.sync({ alter: false }); // Don't alter existing tables
+Upload.belongsTo(Category, { 
+    foreignKey: "categoryId",
+    as: 'Category'
+});
+
+Upload.sync({ alter: false });
 
 module.exports = Upload;
