@@ -45,7 +45,14 @@ app.use('/comments', commentRoute);
 app.use('/pins', pinRoute);
 app.use('/reminders', reminderRoute);
 
+// Sync database models
+sequelize.sync().then(() => {
+    console.log('Database models synchronized');
+}).catch(err => {
+    console.error('Failed to sync database:', err);
+});
+
 // Running on PORT
 app.listen(PORT, () => {
-    console.log(`Server Running on........................ PORT ${PORT}`);
+    console.log(`Server Running on........................PORT ${PORT}`);
 });
