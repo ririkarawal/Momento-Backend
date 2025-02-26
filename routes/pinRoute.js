@@ -12,4 +12,5 @@ router.post('/create_pin', auth, pinController.createPin)
 // Delete a pin (authenticated)
 router.delete('/delete_pin/:id', auth, pinController.deletePin)
 
+
 module.exports = router;
