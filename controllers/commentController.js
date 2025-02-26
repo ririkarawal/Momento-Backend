@@ -1,5 +1,6 @@
 const Comment = require('../model/CommentModel')
 const User = require('../model/UserModel');
+const Upload = require('../model/UploadModel');
 
 const getComment = async(req, res) => {
     try {
@@ -77,11 +78,50 @@ const updateComment = async(req, res) => {
 
 const deleteComment = async(req, res) => {
     try {
+        console.log("Delete comment request received for ID:", req.params.id);
+        console.log("User making request:", req.user);
+        
         const comment = await Comment.findByPk(req.params.id);
         if (!comment) {
+            console.log("Comment not found");
             return res.status(404).json({ message: 'Comment not found' });
         }
+        
+        // Get the upload to check ownership
+        const upload = await Upload.findByPk(comment.uploadId);
+        if (!upload) {
+            console.log("Associated upload not found");
+            return res.status(404).json({ message: 'Associated upload not found' });
+        }
+        
+        // Check if the user is authorized to delete this comment
+        const userId = req.user?.id;
+        console.log("Comment userId:", comment.userId);
+        console.log("Upload userId:", upload.userId);
+        console.log("Current userId:", userId);
+        
+        if (!userId) {
+            console.log("No user ID found in request");
+            return res.status(401).json({ message: 'Authentication required' });
+        }
+        
+        // User can delete if they are:
+        // 1. The comment author, OR
+        // 2. The upload owner
+        const isCommentAuthor = comment.userId === userId;
+        const isUploadOwner = upload.userId === userId;
+        
+        console.log("Is comment author?", isCommentAuthor);
+        console.log("Is upload owner?", isUploadOwner);
+        
+        if (!isCommentAuthor && !isUploadOwner) {
+            console.log("User not authorized to delete this comment");
+            return res.status(403).json({ message: 'Not authorized to delete this comment' });
+        }
+        
+        // Delete the comment and respond
         await comment.destroy();
+        console.log("Comment deleted successfully");
         res.json({ message: 'Comment deleted successfully' });
     } catch (err) {
         console.error("Error deleting comment:", err);
