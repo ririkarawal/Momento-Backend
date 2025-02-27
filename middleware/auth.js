@@ -7,7 +7,9 @@ const auth = (req, res, next) => {
     
     // Check if authorization header exists
     if (!authHeader) {
-        return res.status(401).json({ message: "No token, authorization denied" });
+        console.log("No Authorization header found");
+        req.user = null; // Set to null instead of undefined
+        return next(); // Continue without authentication for routes that don't require it
     }
     
     // Extract the token (remove "Bearer " if present)
@@ -16,7 +18,9 @@ const auth = (req, res, next) => {
         : authHeader;
     
     if (!token) {
-        return res.status(401).json({ message: "No token, authorization denied" });
+        console.log("No token found in Authorization header");
+        req.user = null; // Set to null instead of undefined
+        return next(); // Continue without authentication for routes that don't require it
     }
 
     try {
@@ -35,7 +39,8 @@ const auth = (req, res, next) => {
         next();
     } catch (err) {
         console.error("Token verification error:", err.message);
-        res.status(401).json({ message: "Invalid token" });
+        req.user = null; // Set to null instead of throwing an error
+        next(); // Continue without authentication
     }
 };
 

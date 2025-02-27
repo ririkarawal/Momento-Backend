@@ -1,16 +1,23 @@
-const express = require('express')
+const express = require('express');
 const router = express.Router();
-const pinController = require('../controllers/pinController')
-const auth = require('../middleware/auth')  // Authentication middleware
+const pinController = require('../controllers/pinController');
+const auth = require('../middleware/auth');
 
-// Get all pins (authenticated)
-router.get('/view_pin', auth, pinController.getPin)
+// Debug route to check if the endpoint is accessible
+router.get('/health', (req, res) => {
+  res.status(200).json({ status: 'Pin routes are working' });
+});
 
-// Create a new pin (authenticated)
-router.post('/create_pin', auth, pinController.createPin)
+// Get all pins for logged-in user
+router.get('/view_pin', auth, pinController.getPin);
 
-// Delete a pin (authenticated)
-router.delete('/delete_pin/:id', auth, pinController.deletePin)
+// Get pins for a specific user
+router.get('/user/:userId', auth, pinController.getUserPins);
 
+// Create a new pin
+router.post('/create_pin', auth, pinController.createPin);
+
+// Delete a pin
+router.delete('/delete_pin/:id', auth, pinController.deletePin);
 
 module.exports = router;

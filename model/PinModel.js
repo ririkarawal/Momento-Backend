@@ -1,35 +1,50 @@
-const {Sequelize, DataTypes} = require('sequelize');
+const { DataTypes } = require('sequelize');
 const sequelize = require('../database/db');
 const User = require("./UserModel");
 const Upload = require("./UploadModel");
 
-const Pin = sequelize.define('Pins', {
+const Pin = sequelize.define('Pin', {
     id: {
-       type: DataTypes.INTEGER,
-       primaryKey: true, 
-       autoIncrement: true,
+        type: DataTypes.INTEGER,
+        primaryKey: true,
+        autoIncrement: true
+    },
+    title: {
+        type: DataTypes.STRING(255),
+        allowNull: true
     },
     userId: {
         type: DataTypes.INTEGER,
         allowNull: false,
         references: {
-            model: User,
-            key: "id",
-        },
-        onDelete: "CASCADE",
+            model: 'Users',
+            key: 'id'
+        }
     },
     uploadId: {
         type: DataTypes.INTEGER,
         allowNull: false,
         references: {
-            model: Upload,
-            key: "id",
-        },
-        onDelete: "CASCADE",
+            model: 'Uploads',
+            key: 'id'
+        }
+    },
+    createdAt: {
+        type: DataTypes.DATE,
+        allowNull: false,
+        defaultValue: DataTypes.NOW
+    },
+    updatedAt: {
+        type: DataTypes.DATE,
+        allowNull: false,
+        defaultValue: DataTypes.NOW
     }
 }, {
-    // Optional: add unique constraint to prevent duplicate pins
+    tableName: 'Pins',
+    timestamps: true,
     indexes: [
+        // This creates a compound unique index on userId and uploadId
+        // to ensure a user can only pin an upload once
         {
             unique: true,
             fields: ['userId', 'uploadId']
@@ -37,10 +52,14 @@ const Pin = sequelize.define('Pins', {
     ]
 });
 
-// Associations
-Pin.belongsTo(User, { foreignKey: "userId" });
-Pin.belongsTo(Upload, { foreignKey: "uploadId" });
-User.hasMany(Pin, { foreignKey: "userId" });
-Upload.hasMany(Pin, { foreignKey: "uploadId" });
+// Define associations
+Pin.belongsTo(User, {
+    foreignKey: 'userId'
+});
+
+Pin.belongsTo(Upload, {
+    foreignKey: 'uploadId',
+    as: 'Upload'
+});
 
 module.exports = Pin;
