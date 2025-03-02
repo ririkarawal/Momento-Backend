@@ -53,10 +53,25 @@ const createComment = async(req, res) => {
 
 const updateComment = async(req, res) => {
     try {
-        const comment = await Comment.findByPk(req.params.id);
+        const commentId = req.params.id;
+        const userId = req.user?.id;
+
+        // Find the comment
+        const comment = await Comment.findByPk(commentId);
+        
+        // Check if comment exists
         if (!comment) {
             return res.status(404).json({ message: 'Comment not found' });
         }
+
+        // Check if the user is the owner of the comment
+        if (comment.userId !== userId) {
+            return res.status(403).json({ 
+                message: 'You are not authorized to edit this comment' 
+            });
+        }
+
+        // Update the comment
         await comment.update(req.body);
 
         // Get updated comment with user data
