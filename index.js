@@ -11,6 +11,7 @@ const categoryUploadRoute = require('./routes/categoryUploadRoute');
 const commentRoute = require('./routes/commentRoute');
 const pinRoute = require('./routes/pinRoute');
 const reminderRoute = require('./routes/reminderRoute');
+const followRoute = require('./routes/followRoute');    
 
 // Create uploads directory if it doesn't exist
 const uploadsDir = path.join(__dirname, 'uploads');
@@ -44,6 +45,7 @@ app.use('/categoryuploads', categoryUploadRoute);
 app.use('/comments', commentRoute);
 app.use('/pins', pinRoute);
 app.use('/reminders', reminderRoute);
+app.use('/follows', followRoute);
 
 // Sync database models
 sequelize.sync().then(() => {

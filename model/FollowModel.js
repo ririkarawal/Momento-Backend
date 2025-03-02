@@ -1,14 +1,14 @@
-const { Sequelize, DataTypes } = require('sequelize');
-const sequelize = require('../database/db');
-const User = require("./UserModel");
+const { Sequelize, DataTypes } = require('sequelize'); 
+const sequelize = require('../database/db'); 
+const User = require("./UserModel");  
 
-const Follow = sequelize.define('Follows', {
-  id: {
+const Follow = sequelize.define('Follows', {   
+  id: {     
     type: DataTypes.INTEGER,
     primaryKey: true,
     autoIncrement: true,
   },
-  followerId: {
+  followerId: {     
     type: DataTypes.INTEGER,
     allowNull: false,
     references: {
@@ -17,7 +17,7 @@ const Follow = sequelize.define('Follows', {
     },
     onDelete: 'CASCADE'
   },
-  followedId: {
+  followedId: {     
     type: DataTypes.INTEGER,
     allowNull: false,
     references: {
@@ -25,34 +25,28 @@ const Follow = sequelize.define('Follows', {
       key: 'id',
     },
     onDelete: 'CASCADE'
-  }
-}, {
-  // Ensure unique follow relationship
-  indexes: [
-    {
-      unique: true,
-      fields: ['followerId', 'followedId']
-    }
-  ]
-});
+  } 
+}); 
 
-// Associations
-Follow.belongsTo(User, { 
-  as: 'Follower', 
-  foreignKey: 'followerId' 
-});
-Follow.belongsTo(User, { 
-  as: 'Followed', 
-  foreignKey: 'followedId' 
-});
+// Associations 
+Follow.belongsTo(User, {
+  as: 'Follower',
+  foreignKey: 'followerId'
+}); 
 
-User.hasMany(Follow, { 
-  as: 'Followings', 
-  foreignKey: 'followerId' 
-});
-User.hasMany(Follow, { 
-  as: 'Followers', 
-  foreignKey: 'followedId' 
-});
+Follow.belongsTo(User, {
+  as: 'Followed',
+  foreignKey: 'followedId'
+}); 
+
+User.hasMany(Follow, {
+  as: 'Followings',
+  foreignKey: 'followerId'
+}); 
+
+User.hasMany(Follow, {
+  as: 'Followers',
+  foreignKey: 'followedId'
+}); 
 
 module.exports = Follow;

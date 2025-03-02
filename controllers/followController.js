@@ -2,7 +2,7 @@ const Follow = require('../model/FollowModel');
 const User = require('../model/UserModel');
 const { Op } = require('sequelize');
 
-exports.followUser = async (req, res) => {
+exports.toggleFollow = async (req, res) => {
   try {
     const followerId = req.user.id;
     const { userId: followedId } = req.body;
